@@ -19,5 +19,6 @@ import assessment
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/',include('assessment.urls'))
+    path('api/',include('assessment.urls')),
+    path('auth/',include('authentication.urls'))
 ]

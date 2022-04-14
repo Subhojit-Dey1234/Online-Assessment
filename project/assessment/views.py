@@ -1,8 +1,4 @@
-from enum import unique
-from re import T
 from django.http import Http404
-from django.shortcuts import render
-
 # Create your views here.
 from .serializers import (
     SubmissionSerializer,
@@ -15,9 +11,14 @@ from .models import Attempts, Option, Question, Student, Submission, Test
 from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 
 class Test_View_Details(APIView):
+
+    permission_classes = [ IsAuthenticated ]
+
+
     def get_object(self,pk):
         test = Test.objects.filter(unique_id = pk)
         test_serializer = TestSerializer(test)
@@ -29,6 +30,8 @@ class Test_View_Details(APIView):
         return Response(serializer.data)
 
     def post(self, request):
+        if(request.user.groups.all()[0].name == "Students"):
+            return Response("You are not allowed", status=status.HTTP_401_UNAUTHORIZED)
         try:
             data = JSONParser().parse(request)
             name = data["name"]
@@ -64,6 +67,9 @@ class Test_View_Details(APIView):
 
 
 class Test_View_Detail_Single(APIView):
+    
+
+    permission_classes = [ IsAuthenticated ]
 
     def get_object(self,pk):
         test = Test.objects.filter(unique_id = pk)
@@ -81,8 +87,18 @@ class Test_View_Detail_Single(APIView):
         test.delete()
         return Response("Deleted Successfully", status=status.HTTP_200_OK)
 
+class Submission_View_All(APIView):
+
+    permission_classes = [ IsAuthenticated ]
+
+    def get(self,request):
+        submissions = Submission.objects.all()
+        return Response(SubmissionSerializer(submissions,many=True).data,status=status.HTTP_200_OK)
+
 
 class Submission_View(APIView):
+
+    permission_classes = [ IsAuthenticated ]
 
     def get_object(self,pk):
         test = Test.objects.filter(unique_id = pk)
@@ -91,16 +107,13 @@ class Submission_View(APIView):
         raise Http404
 
     def get(self,request,pk = None):
-        serializer = None
-        if( pk == None ):
-            submissions = Submission.objects.all()
-            serializer = SubmissionSerializer(submissions, many=True)
-        else:
-            submissions = Submission.objects.get(pk = pk)
-            serializer = SubmissionSerializer(submissions)
+        submissions = Submission.objects.get(pk = pk)
+        serializer = SubmissionSerializer(submissions)
         return Response(serializer.data,status=status.HTTP_200_OK)
 
     def post(self,request,pk):
+        if(request.user.groups.all()[0].name == "Students"):
+            return Response("You are not allowed", status=status.HTTP_401_UNAUTHORIZED)
         submissions = request.data["submissions"]
         test = self.get_object(pk)
         attempt = Attempts.objects.create(
@@ -128,6 +141,8 @@ class Submission_View(APIView):
 
 
 class Attempts_View(APIView):
+
+    permission_classes = [ IsAuthenticated ]
 
     def get(self,request,pk = None):
         
