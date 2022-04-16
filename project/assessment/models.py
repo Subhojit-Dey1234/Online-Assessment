@@ -1,15 +1,18 @@
-from ast import Try
 from django.db import models
 import uuid
+from django.contrib.auth.models import User
 
 
-# class Teacher(models.Model):
-#     name = models.CharField(max_length=300)
-#     email_id = models.CharField(max_length=300)
-#     mobile_number = models.IntegerField(max_length=10)
+class Teacher(models.Model):
+    user = models.ForeignKey(User, blank= True, null=True, on_delete=models.CASCADE)
+
+
+    def __str__(self):
+        return self.user.username
+    
 
 class Test(models.Model):
-    # teacher = models.ForeignKey(Teacher,null=True,blank=True,on_delete=models.SET_NULL)
+    teacher = models.ForeignKey(Teacher,null=True,blank=True,on_delete=models.SET_NULL)
     name = models.CharField(max_length=300)
     unique_id = models.UUIDField(default=uuid.uuid4,max_length=5,editable = False)
     isFixed = models.BooleanField(default=False)
@@ -17,11 +20,12 @@ class Test(models.Model):
     exam_end_time = models.DateField(null=True, blank=True)
     student = models.ManyToManyField("Student",related_name="student_field")
     questions = models.ManyToManyField("Question", related_name="question")
-    submission = models.ManyToManyField("Submission", related_name="submission_field",blank=True)
+    submission = models.ManyToManyField("Attempts", related_name="submission_field",blank=True)
     show_result = models.BooleanField(default=True)
+    marks_obtained = models.IntegerField(default=0)
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
 
 class Question(models.Model):
@@ -44,9 +48,9 @@ class Option(models.Model):
 
 
 class Attempts(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, blank=True,null=True,related_name="submission_test")
     name = models.CharField(max_length=300)
     student = models.ForeignKey("Student",on_delete=models.CASCADE,blank=True,null=True,related_name="student_submitted")
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, blank=True,null=True,related_name="submission_test")
     submission =  models.ManyToManyField("Submission", related_name="submission_attempts_field")
     marks_obtained = models.IntegerField(default=0)
 
@@ -63,9 +67,8 @@ class Submission(models.Model):
 
 
 class Student(models.Model):
-    name = models.CharField(max_length=300)
-    email = models.EmailField()
+    user = models.ForeignKey(User, blank= True, null=True, on_delete=models.CASCADE)
     test  = models.ManyToManyField(Test,related_name="test_field",blank=True)
 
     def __str__(self):
-        return self.name
+        return self.user.username

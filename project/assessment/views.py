@@ -30,6 +30,7 @@ class Test_View_Details(APIView):
         return Response(serializer.data)
 
     def post(self, request):
+        print(request.user)
         if(request.user.groups.all()[0].name == "Students"):
             return Response("You are not allowed", status=status.HTTP_401_UNAUTHORIZED)
         try:
@@ -47,18 +48,7 @@ class Test_View_Details(APIView):
             test.save()
             questions = data["questions"]
             for question in questions:
-                question_data = Question.objects.create(name=question["name"])
-                options = question["options"]
-                for op in options:
-                    option_data = Option.objects.create(
-                        name=op["name"], is_correct=op["is_correct"]
-                    )
-                    question_data.options.add(option_data)
-                    option_data.question = question_data
-                    option_data.save()
-
-                question_data.test = test
-                question_data.save()
+                question_data = Question.objects.get(pk = question)
                 test.questions.add(question_data)
             test_serializer = TestSerializer(test)
             return Response(test_serializer.data, status=status.HTTP_201_CREATED)
@@ -78,9 +68,17 @@ class Test_View_Detail_Single(APIView):
         raise Http404
 
     def get(self,request,pk):
-        test = self.get_object(pk)
-        test_serializer = TestSerializer(test,many = True)
+        test = Test.objects.get(unique_id = pk)
+        test_serializer = TestSerializer(test)
         return Response(test_serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self,request,pk):
+        test = Test.objects.get(unique_id = pk)
+        test_serializer = TestSerializer(test, data = request.data, partial = True)
+        if(test_serializer.is_valid()):
+            test_serializer.save()
+            return Response(test_serializer.data,status= status.HTTP_200_OK)
+        return Response(test_serializer.errors,status=status.HTTP_404_NOT_FOUND)
 
     def delete(self,pk):
         test = self.get_object(pk)
@@ -98,7 +96,7 @@ class Submission_View_All(APIView):
 
 class Submission_View(APIView):
 
-    permission_classes = [ IsAuthenticated ]
+    # permission_classes = [ IsAuthenticated ]
 
     def get_object(self,pk):
         test = Test.objects.filter(unique_id = pk)
@@ -107,19 +105,26 @@ class Submission_View(APIView):
         raise Http404
 
     def get(self,request,pk = None):
-        submissions = Submission.objects.get(pk = pk)
-        serializer = SubmissionSerializer(submissions)
+        submissions = Attempts.objects.get(pk = pk)
+        serializer = AttemptSerializer(submissions)
         return Response(serializer.data,status=status.HTTP_200_OK)
 
     def post(self,request,pk):
-        if(request.user.groups.all()[0].name == "Students"):
-            return Response("You are not allowed", status=status.HTTP_401_UNAUTHORIZED)
+        student = Student.objects.get(user = request.user)
+        test = self.get_object(pk)[0]
+        if test in student.test.all():
+            return Response("You have already attempted", status=status.HTTP_404_NOT_FOUND)
+        
+        student.test.add(test)
         submissions = request.data["submissions"]
         test = self.get_object(pk)
         attempt = Attempts.objects.create(
             name = request.data["name"]
         )
         attempt.test = test[0]
+        test[0].submission.add(attempt)
+
+        attempt.student = student
         marks_obtained = 0
         for submission in submissions:
             question = Question.objects.get(pk = submission["question"])
@@ -137,7 +142,7 @@ class Submission_View(APIView):
             attempt.marks_obtained = marks_obtained
         attempt.save()
         serailizer = AttemptSerializer(attempt)
-        return Response(serailizer.data)
+        return Response(serailizer.data, status=status.HTTP_201_CREATED)
 
 
 class Attempts_View(APIView):

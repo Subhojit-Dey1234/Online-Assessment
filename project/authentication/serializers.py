@@ -1,4 +1,5 @@
-from email.headerregistry import Group
+from assessment.models import Student, Teacher
+
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from django.contrib.auth.models import User
@@ -10,7 +11,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
-
         token['username'] = user.username
         token['email'] = user.email
         return token
@@ -41,9 +41,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         groups_data = validated_data.pop('groups')
-        print(groups_data)
+
+        
         user = User.objects.create(
-            username = validated_data['first_name'] + " " + validated_data['last_name'],
+            username = validated_data['username'],
             email=validated_data['email'],
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name']
@@ -52,4 +53,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
 
+        if( groups_data[0].name == "Students"):
+            student = Student.objects.create( user = user )
+            student.save()
+
+        elif ( groups_data[0].name == "Teacher"):
+            teacher = Teacher.objects.create( user = user )
+            teacher.save()
         return user

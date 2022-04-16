@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Student, Test, Question, Submission, Option, Attempts
+from .models import Student, Teacher, Test, Question, Submission, Option, Attempts
 
 # Register your models here.
 admin.site.register(Student)
@@ -9,3 +9,4 @@ admin.site.register(Submission)
 admin.site.register(Test)
 admin.site.register(Option)
 admin.site.register(Attempts)
+admin.site.register(Teacher)
