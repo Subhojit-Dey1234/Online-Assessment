@@ -31,9 +31,12 @@ class Test(models.Model):
 class Question(models.Model):
     test = models.ForeignKey(Test,null=True,blank=True,on_delete=models.CASCADE)
     name = models.CharField(max_length=300)
-    options = models.ManyToManyField("Option",related_name="option")
+    options = models.ManyToManyField("Option",related_name="option",blank=True)
     positive_marks = models.IntegerField(default=0)
     negative_marks = models.IntegerField(default=0)
+    is_range_present = models.BooleanField(default=False)
+    lowest_mark = models.FloatField(default=0,blank=True)
+    highest_mark = models.FloatField(default=0,blank=True)
 
     def __str__(self) -> str:
         return str(self.id)
@@ -63,12 +66,15 @@ class Submission(models.Model):
     question = models.ForeignKey(Question,on_delete=models.CASCADE,blank=True,null=True,related_name="question_foreign_key")
     answer_submitted = models.ManyToManyField(Option, blank=True)
     subjective_answer = models.CharField(max_length=3000,blank=True,null=True)
+    is_correct = models.BooleanField(default=False)
 
 
 
 class Student(models.Model):
     user = models.ForeignKey(User, blank= True, null=True, on_delete=models.CASCADE)
-    test  = models.ManyToManyField(Test,related_name="test_field",blank=True)
+    attempted_test  = models.ManyToManyField(Test,related_name="test_field",blank=True)
+    alloted_test  = models.ManyToManyField(Test,related_name="alloted_test",blank=True)
+    
 
     def __str__(self):
         return self.user.username

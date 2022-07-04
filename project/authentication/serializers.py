@@ -1,10 +1,21 @@
 from assessment.models import Student, Teacher
-
+from django.core.mail import send_mail
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
+from rest_framework.views import APIView
 from django.contrib.auth.password_validation import validate_password
+
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ("username","email")
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     
@@ -49,9 +60,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name']
         )
+
         user.groups.add(groups_data[0])
         user.set_password(validated_data['password'])
-        user.save()
+        
 
         if( groups_data[0].name == "Students"):
             student = Student.objects.create( user = user )
@@ -60,4 +72,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         elif ( groups_data[0].name == "Teacher"):
             teacher = Teacher.objects.create( user = user )
             teacher.save()
+
+        user.save()
         return user

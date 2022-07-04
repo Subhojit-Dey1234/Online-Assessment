@@ -12,7 +12,7 @@ class StudentSerializer(serializers.ModelSerializer):
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Option
-        fields = "__all__"
+        fields = ("id", "question", "name")
 
     def create(self, validated_data):
         print(validated_data)

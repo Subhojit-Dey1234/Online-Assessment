@@ -7,7 +7,7 @@ from .serializers import (
 )
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Attempts, Option, Question, Student, Submission, Test
+from .models import Attempts, Option, Question, Student, Submission, Teacher, Test
 from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.views import APIView
@@ -30,26 +30,46 @@ class Test_View_Details(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        print(request.user)
         if(request.user.groups.all()[0].name == "Students"):
             return Response("You are not allowed", status=status.HTTP_401_UNAUTHORIZED)
         try:
+            teacher = Teacher.objects.filter(user = request.user)
             data = JSONParser().parse(request)
+            students = data["students"]                
             name = data["name"]
             isFixed = data["isFixed"]
             exam_start_time = data["exam_start_time"]
             exam_end_time = data["exam_end_time"]
             test = Test.objects.create(
+                teacher = teacher[0],
                 name=name,
                 isFixed=isFixed,
                 exam_start_time=exam_start_time,
                 exam_end_time=exam_end_time,
             )
+
+            if( len(students) == 0 ):
+                for s in Student.objects.all():
+                    test.student.add(s)
+                    s.alloted_test.add(test)
+
+            else:
+                for s in students:
+                    print(s)
+                    s_email = Student.objects.filter(user__email = s)
+                    print(s_email)
+                    if s_email:
+                        test.student.add(s_email[0])
+                        s_email[0].alloted_test.add(test)
             test.save()
             questions = data["questions"]
-            for question in questions:
-                question_data = Question.objects.get(pk = question)
+            print(questions)
+            for q in questions:
+                question_data = Question.objects.get(pk = q)
+                # print(question_data[0])
                 test.questions.add(question_data)
+                question_data.test = test
+                question_data.save()
             test_serializer = TestSerializer(test)
             return Response(test_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
@@ -68,9 +88,11 @@ class Test_View_Detail_Single(APIView):
         raise Http404
 
     def get(self,request,pk):
-        test = Test.objects.get(unique_id = pk)
-        test_serializer = TestSerializer(test)
-        return Response(test_serializer.data, status=status.HTTP_200_OK)
+        test = Test.objects.filter(unique_id = pk)
+        if test:
+            test_serializer = TestSerializer(test[0])
+            return Response(test_serializer.data, status=status.HTTP_200_OK)
+        return Response("Not found", status=status.HTTP_404_NOT_FOUND)
 
     def patch(self,request,pk):
         test = Test.objects.get(unique_id = pk)
@@ -96,7 +118,7 @@ class Submission_View_All(APIView):
 
 class Submission_View(APIView):
 
-    # permission_classes = [ IsAuthenticated ]
+    permission_classes = [ IsAuthenticated ]
 
     def get_object(self,pk):
         test = Test.objects.filter(unique_id = pk)
@@ -110,12 +132,13 @@ class Submission_View(APIView):
         return Response(serializer.data,status=status.HTTP_200_OK)
 
     def post(self,request,pk):
+        print(request.user)
         student = Student.objects.get(user = request.user)
         test = self.get_object(pk)[0]
-        if test in student.test.all():
+        print(test)
+        if test in student.attempted_test.all():
             return Response("You have already attempted", status=status.HTTP_404_NOT_FOUND)
-        
-        student.test.add(test)
+        student.attempted_test.add(test)
         submissions = request.data["submissions"]
         test = self.get_object(pk)
         attempt = Attempts.objects.create(
@@ -130,16 +153,19 @@ class Submission_View(APIView):
             question = Question.objects.get(pk = submission["question"])
             submsm = Submission.objects.create()
             submsm.question = question
+            is_question_correct = True
             for answer in submission["answer_submitted"]:
                 submitted_option = Option.objects.get(pk = answer)
+                is_question_correct = is_question_correct and submitted_option.is_correct
                 submsm.answer_submitted.add(submitted_option)
-                if submitted_option.is_correct:
-                    marks_obtained += question.positive_marks
-                else:
-                    marks_obtained -= question.negative_marks
+
+            if is_question_correct:
+                attempt.marks_obtained += question.positive_marks
+            else:
+                attempt.marks_obtained -= question.negative_marks
+            
             submsm.save()
             attempt.submission.add(submsm)
-            attempt.marks_obtained = marks_obtained
         attempt.save()
         serailizer = AttemptSerializer(attempt)
         return Response(serailizer.data, status=status.HTTP_201_CREATED)
@@ -154,3 +180,17 @@ class Attempts_View(APIView):
         attempt = Attempts.objects.get(pk = pk)
         serializer = AttemptSerializer(attempt)
         return Response(serializer.data,status=status.HTTP_200_OK)
+
+
+
+class CheckSubmission(APIView):
+
+    def get(self,request,pk):
+        student = Student.objects.get(user = request.user)
+        test = Test.objects.get(unique_id = pk)
+        print(test)
+        if test in student.attempted_test.all():
+            return Response("You have already submitted",status=status.HTTP_200_OK)
+        if test in student.alloted_test.all():
+            return Response("Can attempt",status=status.HTTP_200_OK)
+        return Response("Not Allowed",status=status.HTTP_405_METHOD_NOT_ALLOWED)

@@ -30,3 +30,11 @@ class Option_View(APIView):
             optionserializer.save()
             return Response(optionserializer.data , status= status.HTTP_200_OK)
         return Response(optionserializer.errors , status= status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class Option_Post(APIView):
+
+    def post(self,request):
+        pass
