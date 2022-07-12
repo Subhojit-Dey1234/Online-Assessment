@@ -1,3 +1,6 @@
+from matplotlib.style import use
+from numpy import source
+from requests import request
 from assessment.models import Student, Teacher
 from django.core.mail import send_mail
 from rest_framework.authtoken.models import Token
@@ -8,6 +11,7 @@ from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from rest_framework.views import APIView
 from django.contrib.auth.password_validation import validate_password
+from .models import ExtendedUserModel
 
 
 
@@ -31,15 +35,18 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
             required=True,
-            validators=[UniqueValidator(queryset=User.objects.all())]
+            validators=[UniqueValidator(queryset=User.objects.all())],
+            source = "user.email"
             )
-
+    username = serializers.CharField(source="user.username")
+    first_name = serializers.CharField(source="user.first_name")
+    last_name = serializers.CharField(source="user.last_name")
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
-        model = User
-        fields = ('username','password', 'password2', 'email', 'first_name', 'last_name','groups')
+        model = ExtendedUserModel
+        fields = ('username','password', 'password2', 'email', 'first_name', 'last_name','phone_number','user_type')
         extra_kwargs = {
             'first_name': {'required': True},
             'last_name': {'required': True}
@@ -51,27 +58,29 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        groups_data = validated_data.pop('groups')
-
-        
         user = User.objects.create(
-            username = validated_data['username'],
-            email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
+            username = validated_data['user']['username'],
+            email=validated_data['user']['email'],
+            first_name=validated_data['user']['first_name'],
+            last_name=validated_data['user']['last_name']
         )
 
-        user.groups.add(groups_data[0])
+        extended_user = ExtendedUserModel.objects.create(
+            user = user,
+            phone_number = validated_data["phone_number"],
+            user_type = validated_data["user_type"]
+        )
         user.set_password(validated_data['password'])
-        
 
-        if( groups_data[0].name == "Students"):
-            student = Student.objects.create( user = user )
-            student.save()
+        user_type = validated_data["user_type"]
 
-        elif ( groups_data[0].name == "Teacher"):
-            teacher = Teacher.objects.create( user = user )
-            teacher.save()
+        if(user_type == "student") :
+            st = Student.objects.create(user = user)
+            st.save()
+        elif(user_type == "teacher"):
+            tch = Teacher.objects.create(user = user)
+            tch.save()
 
         user.save()
-        return user
+        extended_user.save()
+        return extended_user

@@ -16,8 +16,8 @@ class Test(models.Model):
     name = models.CharField(max_length=300)
     unique_id = models.UUIDField(default=uuid.uuid4,max_length=5,editable = False)
     isFixed = models.BooleanField(default=False)
-    exam_start_time = models.DateField(null=True, blank=True)
-    exam_end_time = models.DateField(null=True, blank=True)
+    exam_start_time = models.DateTimeField(null=True, blank=True)
+    exam_end_time = models.DateTimeField(null=True, blank=True)
     student = models.ManyToManyField("Student",related_name="student_field")
     questions = models.ManyToManyField("Question", related_name="question")
     submission = models.ManyToManyField("Attempts", related_name="submission_field",blank=True)
@@ -67,6 +67,10 @@ class Submission(models.Model):
     answer_submitted = models.ManyToManyField(Option, blank=True)
     subjective_answer = models.CharField(max_length=3000,blank=True,null=True)
     is_correct = models.BooleanField(default=False)
+    is_attempted = models.BooleanField(default=False)
+    is_answered = models.BooleanField(default=False)
+    is_reviewed = models.BooleanField(default=False)
+
 
 
 

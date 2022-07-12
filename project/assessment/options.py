@@ -11,10 +11,12 @@ from rest_framework.permissions import IsAuthenticated
 class Option_View(APIView):
 
     def get(self,request,pk):
-        option = Option.objects.get(pk = pk)
-        optionserializer = QuestionSerializer(option)
-
-        return Response(optionserializer.data,status=status.HTTP_200_OK)
+        try :
+            option = Option.objects.get(pk = pk)
+            optionserializer = OptionSerializer(option)
+            return Response(optionserializer.data,status=status.HTTP_200_OK)
+        except:
+            return Response("Not found",status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
     def delete(self,request,pk):
@@ -37,4 +39,14 @@ class Option_View(APIView):
 class Option_Post(APIView):
 
     def post(self,request):
-        pass
+        question = Question.objects.get(pk = request.data["question"])
+        option = Option.objects.create(
+            name = request.data["name"],
+            is_correct = request.data["is_correct"],
+            question = question
+        )
+        option_serializer = OptionSerializer(option)
+        if(option_serializer.is_valid()):
+            option_serializer.save()
+            return Response(option_serializer.data,status.HTTP_201_CREATED)
+        return Response(option_serializer.errors,status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -15,7 +15,6 @@ class OptionSerializer(serializers.ModelSerializer):
         fields = ("id", "question", "name")
 
     def create(self, validated_data):
-        print(validated_data)
         return Option.objects.create(**validated_data)
 
 

@@ -1,3 +1,4 @@
+from functools import partial
 from .serializers import MyTokenObtainPairSerializer, UserSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -7,9 +8,20 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
+from .models import ExtendedUserModel
 from django.shortcuts import get_object_or_404
 
+class ForgetPassword(APIView):
 
+    def patch(self,request):
+        print(request.data)
+        username = request.data["username"]
+        user = User.objects.get(username = username)
+        user.set_password(request.data["password"])
+        user.save()
+
+        return Response("Success")
+        
 
 class GetToken(APIView):
 
@@ -34,20 +46,20 @@ class MyObtainTokenPairView(TokenObtainPairView):
         serializer.is_valid(raise_exception=True)
 
         username = serializer.__dict__["_kwargs"]["data"]["username"]
-
-        user = User.objects.filter(username = username)
-        group = Group.objects.filter(user__username = username)
-        user_response = {
-            "username" : user[0].username,
-            "email" : user[0].email,
-            "user_type" : group[0].name,
-        }
-        
-        response = {
-            "user" : user_response,
-            "token" : serializer.__dict__['_validated_data']
-        }
-        return Response(response)
+        try :
+            extended_user = ExtendedUserModel.objects.get(user__username = username)
+            user_response = {
+                "username" : extended_user.user.username,
+                "email" : extended_user.user.email,
+                "user_type" : extended_user.user_type
+            }
+            response = {
+                "user" : user_response,
+                "token" : serializer.__dict__['_validated_data']
+            }
+            return Response(response)
+        except :
+            return Response("No user found", status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -60,6 +72,8 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
+    queryset = ExtendedUserModel.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
+
+

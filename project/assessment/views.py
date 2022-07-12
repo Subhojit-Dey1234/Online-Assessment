@@ -12,6 +12,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from authentication.models import ExtendedUserModel
 
 
 class Test_View_Details(APIView):
@@ -30,7 +31,8 @@ class Test_View_Details(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        if(request.user.groups.all()[0].name == "Students"):
+        user = ExtendedUserModel.objects.get(user = request.user)
+        if(user.user_type == "student"):
             return Response("You are not allowed", status=status.HTTP_401_UNAUTHORIZED)
         try:
             teacher = Teacher.objects.filter(user = request.user)
@@ -95,7 +97,13 @@ class Test_View_Detail_Single(APIView):
         return Response("Not found", status=status.HTTP_404_NOT_FOUND)
 
     def patch(self,request,pk):
+        ques = request.data["questions"]
         test = Test.objects.get(unique_id = pk)
+        test.questions.set([])
+        for q in ques:
+            qs = Question.objects.get(pk = q)
+            test.questions.add(qs)
+        del request.data["questions"]
         test_serializer = TestSerializer(test, data = request.data, partial = True)
         if(test_serializer.is_valid()):
             test_serializer.save()
@@ -132,10 +140,8 @@ class Submission_View(APIView):
         return Response(serializer.data,status=status.HTTP_200_OK)
 
     def post(self,request,pk):
-        print(request.user)
         student = Student.objects.get(user = request.user)
         test = self.get_object(pk)[0]
-        print(test)
         if test in student.attempted_test.all():
             return Response("You have already attempted", status=status.HTTP_404_NOT_FOUND)
         student.attempted_test.add(test)
@@ -151,6 +157,7 @@ class Submission_View(APIView):
         marks_obtained = 0
         for submission in submissions:
             question = Question.objects.get(pk = submission["question"])
+            # Creating Submission Object for submitting Question
             submsm = Submission.objects.create()
             submsm.question = question
             is_question_correct = True
