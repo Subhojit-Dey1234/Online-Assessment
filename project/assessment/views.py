@@ -93,6 +93,7 @@ class Test_View_Detail_Single(APIView):
         test = Test.objects.filter(unique_id = pk)
         if test:
             test_serializer = TestSerializer(test[0])
+            print(test_serializer.data)
             return Response(test_serializer.data, status=status.HTTP_200_OK)
         return Response("Not found", status=status.HTTP_404_NOT_FOUND)
 
