@@ -50,7 +50,7 @@ class Question_View_Post(APIView):
 
     def post(self,request):
         for key in request.data:
-            if( request.data[key] == None ):
+            if( key != 'exam_end_time' and key != 'exam_start_time' and request.data[key] == None ):
                 return Response("Empty Field is not allowed", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         user = ExtendedUserModel.objects.get(user = request.user)
         if(user.user_type == "student"):
