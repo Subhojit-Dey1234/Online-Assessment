@@ -57,7 +57,6 @@ class Test_View_Details(APIView):
 
             else:
                 for s in students:
-                    print(s)
                     s_email = Student.objects.filter(user__email = s)
                     print(s_email)
                     if s_email:
@@ -65,7 +64,6 @@ class Test_View_Details(APIView):
                         s_email[0].alloted_test.add(test)
             test.save()
             questions = data["questions"]
-            print(questions)
             for q in questions:
                 question_data = Question.objects.get(pk = q)
                 # print(question_data[0])
@@ -93,7 +91,6 @@ class Test_View_Detail_Single(APIView):
         test = Test.objects.filter(unique_id = pk)
         if test:
             test_serializer = TestSerializer(test[0])
-            print(test_serializer.data)
             return Response(test_serializer.data, status=status.HTTP_200_OK)
         return Response("Not found", status=status.HTTP_404_NOT_FOUND)
 

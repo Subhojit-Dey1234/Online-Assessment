@@ -12,10 +12,11 @@ class StudentSerializer(serializers.ModelSerializer):
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Option
-        fields = ("id", "question", "name")
+        fields = ("id", "question", "name","is_correct")
 
     def create(self, validated_data):
-        return Option.objects.create(**validated_data)
+        op = Option.objects.create(**validated_data)
+        return op
 
 
 class QuestionSerializer(serializers.ModelSerializer):

@@ -1,7 +1,10 @@
+from distutils import errors
+from functools import partial
 from rest_framework.response import Response
+from sympy import true
 
 from authentication.models import ExtendedUserModel
-from .serializers import QuestionSerializer, TestSerializer
+from .serializers import OptionSerializer, QuestionSerializer, TestSerializer
 from .models import Attempts, Option, Question, Student, Submission, Test
 from rest_framework.parsers import JSONParser
 from rest_framework import status
@@ -28,17 +31,32 @@ class Question_View(APIView):
 
 
     def patch(self,request,pk):
-        options = request.data["options"]
+        print(request.data["options"])
         question = Question.objects.get(pk = pk)
-        question.options.set([])
-        for op in options:
-            try :
-                op_obj = Option.objects.get(pk = op)
-                question.options.add(op_obj)
+        for op in request.data["options"]:
+            try:
+                op_obj = Option.objects.get(id = op['id'])
+                print(op_obj)
+                option_serializer = OptionSerializer(op_obj,data = op,partial = True)
+                if(option_serializer.is_valid()):
+                    question.options.add(op_obj)
+                    option_serializer.save()
+                else:
+                    return Response(option_serializer.errors, status= status.HTTP_400_BAD_REQUEST)
             except :
-                return Response("Options Not found", status=status.HTTP_404_NOT_FOUND)
+                print("Options Not found")
+                op_obj = Option.objects.create()
+                op_obj.question = question
+                op_obj.name = op["name"]
+                option_serializer = OptionSerializer(op_obj, data = op)
+                if(option_serializer.is_valid()):
+                    question.options.add(op_obj)
+                    option_serializer.save()
+                else:
+                    return Response(option_serializer.errors, status= status.HTTP_400_BAD_REQUEST)
         del request.data["options"]
-        questionserializer = QuestionSerializer(question, data= request.data, partial = True)
+        print(request.data)
+        questionserializer = QuestionSerializer(question, data = request.data, partial = True)
         if(questionserializer.is_valid()):
             questionserializer.save()
             return Response(questionserializer.data , status= status.HTTP_200_OK)

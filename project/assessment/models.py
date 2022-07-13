@@ -1,3 +1,4 @@
+from ast import Try
 from django.db import models
 import uuid
 from django.contrib.auth.models import User
@@ -23,6 +24,7 @@ class Test(models.Model):
     submission = models.ManyToManyField("Attempts", related_name="submission_field",blank=True)
     show_result = models.BooleanField(default=True)
     marks_obtained = models.IntegerField(default=0)
+    instructions = models.CharField(max_length=1000, blank=True, null=True)
 
     # def __str__(self):
     #     return self.name
