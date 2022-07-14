@@ -9,6 +9,8 @@ class StudentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+
+
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Option
@@ -29,17 +31,25 @@ class QuestionSerializer(serializers.ModelSerializer):
         question = Question.objects.create(**validated_data)
         return question
 
-    
-
-        
-
-
-
 class SubmissionSerializer(serializers.ModelSerializer):
     answer_submitted = OptionSerializer(many=True)
     class Meta:
         model = Submission
         fields = "__all__"
+
+    # def create(self, validated_data,*args, **kwargs):
+    #     submission = Submission.objects.create(**validated_data)
+    #     return submission
+
+class SubmissionPatchSerializer(serializers.ModelSerializer):
+    # answer_submitted = OptionSerializer(many=True)
+    class Meta:
+        model = Submission
+        fields = "__all__"
+
+    def create(self, validated_data,*args, **kwargs):
+        submission = Submission.objects.create(**validated_data)
+        return submission
 
 
 class AttemptSerializer(serializers.ModelSerializer):
@@ -57,4 +67,16 @@ class TestSerializer(serializers.ModelSerializer):
     submission = AttemptSerializer(many = True)
     class Meta:
         model = Test
+        fields = "__all__"
+
+
+class TestStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Test
+        fields = ("unique_id","id","exam_start_time","exam_end_time","instructions","name","instructions","questions")
+
+class StudentUserSerializer(serializers.ModelSerializer):
+    alloted_test = TestStudentSerializer(many = True)
+    class Meta:
+        model = Student
         fields = "__all__"

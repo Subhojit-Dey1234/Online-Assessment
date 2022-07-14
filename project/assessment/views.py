@@ -1,6 +1,13 @@
+from enum import unique
+from functools import partial
+from traceback import print_tb
 from django.http import Http404
+from sympy import true
 # Create your views here.
 from .serializers import (
+    StudentSerializer,
+    StudentUserSerializer,
+    SubmissionPatchSerializer,
     SubmissionSerializer,
     AttemptSerializer,
     TestSerializer,
@@ -152,7 +159,6 @@ class Submission_View(APIView):
         test[0].submission.add(attempt)
 
         attempt.student = student
-        marks_obtained = 0
         for submission in submissions:
             question = Question.objects.get(pk = submission["question"])
             # Creating Submission Object for submitting Question
@@ -199,3 +205,79 @@ class CheckSubmission(APIView):
         if test in student.alloted_test.all():
             return Response("Can attempt",status=status.HTTP_200_OK)
         return Response("Not Allowed",status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+
+class Test_Student(APIView):
+
+    permission_classes = [ IsAuthenticated ]
+
+    def get(self,request):
+        print(request.user)
+        try :
+            student = Student.objects.get(user = request.user)
+            student_ser = StudentUserSerializer(student)
+            return Response(student_ser.data)
+        except :
+            return Response("Please Login As a student", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class Submission_View_Student(APIView):
+
+    def get(self,request,test):
+        try :
+            submission = Submission.objects.filter(test__unique_id = test, user = request.user)
+            submission_ser = SubmissionSerializer(submission,many = True)
+            return Response(submission_ser.data)
+        except :
+            return Response("No submission", status=status.HTTP_204_NO_CONTENT)
+
+
+class Submission_View_Student_View(APIView):
+
+
+    def post(self,request,test,pk):
+        data = request.data
+        question = Question.objects.get(id = pk)
+        check_subs = Submission.objects.filter(question__id = pk,test__unique_id = test, user = request.user)
+        if(len(check_subs) > 0):
+            return Response("You have already submitted", status= status.HTTP_403_FORBIDDEN)
+        submission = Submission.objects.create()
+        submission.question = question
+        submission.user = request.user
+        submission.test = Test.objects.get(unique_id = test)
+        submission.is_attempted = True
+        for answer in data["answer_submitted"]:
+            submitted_option = Option.objects.get(pk = answer)
+            submission.answer_submitted.add(submitted_option)
+        submission.user = request.user
+        submission.save()
+        submission_serializer = SubmissionSerializer(submission)
+        return Response(submission_serializer.data,status=status.HTTP_201_CREATED)
+
+    def get(self,request,test,pk):
+        print(request.user)
+        try :
+            submission = Submission.objects.filter(question__id = pk,test__unique_id = test, user = request.user)
+            submission_ser = SubmissionSerializer(submission,many = True)
+            return Response(submission_ser.data)
+        except :
+            return Response("No Query Found", status=status.HTTP_404_NOT_FOUND)
+
+    def patch(self,request,test,pk):
+        # try :
+        print(request.user,test,pk)
+        submission = Submission.objects.filter(question = pk, user = request.user, test__unique_id = test )
+        if(len(submission) > 0):
+            submission_ser = SubmissionPatchSerializer(submission[0],data = request.data,partial = True)
+            if(submission_ser.is_valid()):
+                submission_ser.save()
+                return Response(submission_ser.data)
+            return Response(submission_ser.errors,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else :
+            return Response("Errors",status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # except :
+        #     return Response("No Query Found", status=status.HTTP_404_NOT_FOUND)
+
+    

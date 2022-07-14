@@ -65,9 +65,12 @@ class Attempts(models.Model):
     
 
 class Submission(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, blank=True,null=True,related_name="test")
+    user = models.ForeignKey(User,on_delete=models.CASCADE,blank=True,null=True)
     question = models.ForeignKey(Question,on_delete=models.CASCADE,blank=True,null=True,related_name="question_foreign_key")
     answer_submitted = models.ManyToManyField(Option, blank=True)
     subjective_answer = models.CharField(max_length=3000,blank=True,null=True)
+    type = models.CharField(max_length=100,default="Fill in Blanks")
     is_correct = models.BooleanField(default=False)
     is_attempted = models.BooleanField(default=False)
     is_answered = models.BooleanField(default=False)
