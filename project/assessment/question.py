@@ -82,6 +82,7 @@ class Question_View_Post(APIView):
         question.negative_marks = data["negative_marks"]
         options = data["options"]
         question.is_range_present = data["is_range_present"]
+        question.type = data["type"]
 
         if(question.is_range_present) :
             question.lowest_mark = data["lowest_mark"]

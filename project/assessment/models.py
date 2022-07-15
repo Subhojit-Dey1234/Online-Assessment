@@ -39,6 +39,7 @@ class Question(models.Model):
     is_range_present = models.BooleanField(default=False)
     lowest_mark = models.FloatField(default=0,blank=True)
     highest_mark = models.FloatField(default=0,blank=True)
+    type = models.CharField(max_length=100,default="Fill in Blanks")
 
     def __str__(self) -> str:
         return str(self.id)

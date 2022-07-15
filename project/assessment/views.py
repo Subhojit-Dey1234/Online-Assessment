@@ -159,24 +159,7 @@ class Submission_View(APIView):
         test[0].submission.add(attempt)
 
         attempt.student = student
-        for submission in submissions:
-            question = Question.objects.get(pk = submission["question"])
-            # Creating Submission Object for submitting Question
-            submsm = Submission.objects.create()
-            submsm.question = question
-            is_question_correct = True
-            for answer in submission["answer_submitted"]:
-                submitted_option = Option.objects.get(pk = answer)
-                is_question_correct = is_question_correct and submitted_option.is_correct
-                submsm.answer_submitted.add(submitted_option)
-
-            if is_question_correct:
-                attempt.marks_obtained += question.positive_marks
-            else:
-                attempt.marks_obtained -= question.negative_marks
-            
-            submsm.save()
-            attempt.submission.add(submsm)
+        attempt.submission.set(submissions)
         attempt.save()
         serailizer = AttemptSerializer(attempt)
         return Response(serailizer.data, status=status.HTTP_201_CREATED)
@@ -248,6 +231,7 @@ class Submission_View_Student_View(APIView):
         submission.user = request.user
         submission.test = Test.objects.get(unique_id = test)
         submission.is_attempted = True
+        submission.subjective_answer = data["subjective_answer"]
         for answer in data["answer_submitted"]:
             submitted_option = Option.objects.get(pk = answer)
             submission.answer_submitted.add(submitted_option)
