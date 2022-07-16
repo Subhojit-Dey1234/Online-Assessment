@@ -2,7 +2,6 @@ from enum import unique
 from functools import partial
 from traceback import print_tb
 from django.http import Http404
-from sympy import true
 # Create your views here.
 from .serializers import (
     StudentSerializer,
@@ -147,6 +146,7 @@ class Submission_View(APIView):
     def post(self,request,pk):
         student = Student.objects.get(user = request.user)
         test = self.get_object(pk)[0]
+        print(test)
         if test in student.attempted_test.all():
             return Response("You have already attempted", status=status.HTTP_404_NOT_FOUND)
         student.attempted_test.add(test)
@@ -157,7 +157,6 @@ class Submission_View(APIView):
         )
         attempt.test = test[0]
         test[0].submission.add(attempt)
-
         attempt.student = student
         attempt.submission.set(submissions)
         attempt.save()
