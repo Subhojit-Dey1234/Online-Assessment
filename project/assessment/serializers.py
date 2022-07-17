@@ -1,9 +1,12 @@
 from cgi import test
 from rest_framework import serializers
+
+from authentication.serializers import UserSerializer
 from .models import Attempts, Option, Question, Submission, Test, Student
 
 
 class StudentSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
     class Meta:
         model = Student
         fields = "__all__"
@@ -54,6 +57,7 @@ class SubmissionPatchSerializer(serializers.ModelSerializer):
 
 class AttemptSerializer(serializers.ModelSerializer):
     submission = SubmissionSerializer(many = True)
+    student = StudentSerializer()
     # question = QuestionSerializer()
     class Meta:
         model = Attempts

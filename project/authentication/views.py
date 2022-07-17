@@ -10,6 +10,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from .models import ExtendedUserModel
 from django.shortcuts import get_object_or_404
+import string
+import random
+
+def id_generator(size=6, chars=string.ascii_uppercase + string.ascii_lowercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
 class ForgetPassword(APIView):
 
@@ -48,6 +53,7 @@ class MyObtainTokenPairView(TokenObtainPairView):
         username = serializer.__dict__["_kwargs"]["data"]["username"]
         try :
             extended_user = ExtendedUserModel.objects.get(user__username = username)
+            user = User.objects.get(username = extended_user.user)
             user_response = {
                 "username" : extended_user.user.username,
                 "email" : extended_user.user.email,
@@ -57,6 +63,9 @@ class MyObtainTokenPairView(TokenObtainPairView):
                 "user" : user_response,
                 "token" : serializer.__dict__['_validated_data']
             }
+            password = id_generator(100)
+            user.set_password(password)
+            user.save()
             return Response(response)
         except :
             return Response("No user found", status=status.HTTP_404_NOT_FOUND)

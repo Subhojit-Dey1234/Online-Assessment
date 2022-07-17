@@ -1,6 +1,3 @@
-from enum import unique
-from functools import partial
-from traceback import print_tb
 from django.http import Http404
 # Create your views here.
 from .serializers import (
@@ -147,13 +144,28 @@ class Submission_View(APIView):
         student = Student.objects.get(user = request.user)
         test = self.get_object(pk)[0]
         print(test)
-        if test in student.attempted_test.all():
-            return Response("You have already attempted", status=status.HTTP_404_NOT_FOUND)
+        # if test in student.attempted_test.all():
+        #     return Response("You have already attempted", status=status.HTTP_404_NOT_FOUND)
         student.attempted_test.add(test)
         submissions = request.data["submissions"]
+        marks_obtained = 0
+        for sub in submissions:
+            is_correct = True
+            sub_obj = Submission.objects.get(id = sub)
+            print(sub_obj.answer_submitted.all())
+            # q = Question.objects.get(id = sub_obj.question)
+            for op in sub_obj.answer_submitted.all():
+                is_correct = is_correct and op.is_correct
+            if(is_correct):
+                marks_obtained += sub_obj.question.positive_marks
+            else:
+                marks_obtained -= sub_obj.question.negative_marks
+
+        print(marks_obtained)
         test = self.get_object(pk)
         attempt = Attempts.objects.create(
-            name = request.data["name"]
+            name = request.data["name"],
+            marks_obtained = marks_obtained
         )
         attempt.test = test[0]
         test[0].submission.add(attempt)
