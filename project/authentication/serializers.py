@@ -46,12 +46,12 @@ class RegisterSerializerTeacher(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username")
     first_name = serializers.CharField(source="user.first_name")
     last_name = serializers.CharField(source="user.last_name")
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
+    # password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    # password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = ExtendedUserModel
-        fields = ('username','password', 'password2', 'email', 'first_name', 'last_name','phone_number','user_type')
+        fields = ('username', 'email', 'first_name', 'last_name','phone_number','user_type')
         extra_kwargs = {
             'first_name': {'required': True},
             'last_name': {'required': True}

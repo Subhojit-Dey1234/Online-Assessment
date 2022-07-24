@@ -66,11 +66,11 @@ class MyObtainTokenPairView(TokenObtainPairView):
                 "token" : serializer.__dict__['_validated_data']
             }
 
-            if(extended_user.user_type == 'student'):
-                password = id_generator(100)
-                print(password)
-                user.set_password(password)
-                user.save()
+            # if(extended_user.user_type == 'student'):
+            password = id_generator(100)
+            print(password)
+            user.set_password(password)
+            user.save()
             return Response(response)
         except :
             return Response("No user found", status=status.HTTP_404_NOT_FOUND)
