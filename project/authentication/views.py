@@ -1,15 +1,16 @@
 from functools import partial
-from .serializers import MyTokenObtainPairSerializer, UserSerializer
+
+from yaml import serialize
+from .serializers import MyTokenObtainPairSerializer, UserSerializer, LogoutSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.models import User, Group
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializerTeacher, RegisterSerializerStudent
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from .models import ExtendedUserModel
-from django.shortcuts import get_object_or_404
 import string
 import random
 
@@ -47,6 +48,7 @@ class MyObtainTokenPairView(TokenObtainPairView):
 
 
     def post( self, request):
+        print(request.data)
         serializer = self.serializer_class(data = request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -63,9 +65,12 @@ class MyObtainTokenPairView(TokenObtainPairView):
                 "user" : user_response,
                 "token" : serializer.__dict__['_validated_data']
             }
-            password = id_generator(100)
-            user.set_password(password)
-            user.save()
+
+            if(extended_user.user_type == 'student'):
+                password = id_generator(100)
+                print(password)
+                user.set_password(password)
+                user.save()
             return Response(response)
         except :
             return Response("No user found", status=status.HTTP_404_NOT_FOUND)
@@ -73,16 +78,25 @@ class MyObtainTokenPairView(TokenObtainPairView):
 
 
 class LogoutView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [IsAuthenticated]
+    serializer_class = LogoutSerializer
 
-    def get(self, request, format=None):
-        # simply delete the token to force a login
-        refresh_token = RefreshToken.objects.all()
+    def post(self, request):
+        print(request.data)
+        serializer = self.serializer_class(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(status=status.HTTP_200_OK)
 
-class RegisterView(generics.CreateAPIView):
+class RegisterViewTeacher(generics.CreateAPIView):
     queryset = ExtendedUserModel.objects.all()
     permission_classes = (AllowAny,)
-    serializer_class = RegisterSerializer
+    serializer_class = RegisterSerializerTeacher
+
+
+class RegisterViewStudent(generics.CreateAPIView):
+    queryset = ExtendedUserModel.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterSerializerStudent
 
 

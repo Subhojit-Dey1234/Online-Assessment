@@ -1,13 +1,22 @@
+import random
+import os
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated,AllowAny
-import random
+from twilio.rest import Client 
 from django.contrib.auth.models import User
-
-
 from .models import ExtendedUserModel, PhoneOTP
+
+from dotenv import load_dotenv
+load_dotenv()
+
+account_sid = os.getenv("account_sid")
+auth_token = os.getenv("auth_token")
+messaging_service_sid = os.getenv("messaging_service_sid")
+
+client = Client(account_sid, auth_token) 
 
 def send_otp(phone):
     if phone:
@@ -53,6 +62,12 @@ class ValidatePhoneSendOTP(APIView):
                             phone = phone,
                             otp = key,
                             )
+
+                        s_msg = client.messages.create(         
+                              to='+918583891781' 
+                        )
+
+                        print(s_msg)
                         return Response({
                             'status' : True,
                             'detail' : 'OTP sent successfully.'

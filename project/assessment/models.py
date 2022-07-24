@@ -82,6 +82,8 @@ class Submission(models.Model):
 
 class Student(models.Model):
     user = models.ForeignKey(User, blank= True, null=True, on_delete=models.CASCADE)
+    discipline = models.CharField(max_length=256,blank=True,null=True)
+    programme = models.CharField(max_length=256,blank=True,null=True)
     attempted_test  = models.ManyToManyField(Test,related_name="test_field",blank=True)
     alloted_test  = models.ManyToManyField(Test,related_name="alloted_test",blank=True)
     

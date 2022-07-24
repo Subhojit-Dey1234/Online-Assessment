@@ -242,8 +242,9 @@ class Submission_View_Student_View(APIView):
         submission.user = request.user
         submission.test = Test.objects.get(unique_id = test)
         submission.is_attempted = True
-        submission.subjective_answer = data["subjective_answer"]
-        for answer in data["answer_submitted"]:
+        submission.is_reviewed = data["is_reviewed"]
+        submission.subjective_answer = request.data.get("subjective_answer",None)
+        for answer in request.data.get("answer_submitted",[]):
             submitted_option = Option.objects.get(pk = answer)
             submission.answer_submitted.add(submitted_option)
         submission.user = request.user

@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'authentication',
     'rest_framework',
@@ -64,12 +65,12 @@ MIDDLEWARE = [
 ]
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(days=15),
-    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=15),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(weeks= 521),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(weeks= 521),
     'ROTATE_REFRESH_TOKENS': True,
 }
 
-PASSWORD_RESET_TIMEOUT = 1
+# PASSWORD_RESET_TIMEOUT = 1
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
