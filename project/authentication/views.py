@@ -1,11 +1,8 @@
-from functools import partial
-
-from yaml import serialize
 from .serializers import MyTokenObtainPairSerializer, UserSerializer, LogoutSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.models import User, Group
-from .serializers import RegisterSerializerTeacher, RegisterSerializerStudent
+from .serializers import RegisterSerializer
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -88,15 +85,9 @@ class LogoutView(APIView):
         serializer.save()
         return Response(status=status.HTTP_200_OK)
 
-class RegisterViewTeacher(generics.CreateAPIView):
+class RegisterView(generics.CreateAPIView):
     queryset = ExtendedUserModel.objects.all()
     permission_classes = (AllowAny,)
-    serializer_class = RegisterSerializerTeacher
-
-
-class RegisterViewStudent(generics.CreateAPIView):
-    queryset = ExtendedUserModel.objects.all()
-    permission_classes = (AllowAny,)
-    serializer_class = RegisterSerializerStudent
+    serializer_class = RegisterSerializer
 
 

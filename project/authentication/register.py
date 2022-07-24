@@ -58,7 +58,7 @@ class ValidatePhoneSendOTP(APIView):
                             })
                     else:
                         PhoneOTP.objects.create(
-                            # name = name,
+                            username = user.first().user,
                             phone = phone,
                             otp = key,
                             )
