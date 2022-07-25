@@ -48,15 +48,20 @@ class MyObtainTokenPairView(TokenObtainPairView):
         print(request.data)
         serializer = self.serializer_class(data = request.data)
         serializer.is_valid(raise_exception=True)
-
+        print("jansdj")
         username = serializer.__dict__["_kwargs"]["data"]["username"]
         try :
+            print("jansdj")
             extended_user = ExtendedUserModel.objects.get(user__username = username)
+            print("jansdj")
             user = User.objects.get(username = extended_user.user)
+            print("jansdj")
             user_response = {
                 "username" : extended_user.user.username,
                 "email" : extended_user.user.email,
-                "user_type" : extended_user.user_type
+                "user_type" : extended_user.user_type,
+                "phone" : extended_user.phone_number,
+                "name" : extended_user.user.first_name + " " + extended_user.user.last_name
             }
             response = {
                 "user" : user_response,
@@ -79,7 +84,6 @@ class LogoutView(APIView):
     serializer_class = LogoutSerializer
 
     def post(self, request):
-        print(request.data)
         serializer = self.serializer_class(data = request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()

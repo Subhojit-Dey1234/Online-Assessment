@@ -104,7 +104,7 @@ class ValidateOTP(APIView):
                     old.save()
                     return Response({
                         'status' : True,
-                        'detail' : 'OTP mactched. Please proceed for registration.'
+                        'detail' : 'OTP mactched'
                         })
 
                 else: 

@@ -91,6 +91,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         dis_f = validated_data["discipline"] if  "discipline" in validated_data else ""
         prog_f = validated_data["programme"] if  "programme" in validated_data else ""
         st_f = validated_data["state"] if "state" in validated_data else ""
+
+        
         if user_type == "student":
             st = Student.objects.create(
                 user=user, city=validated_data["city"], state = st_f,
