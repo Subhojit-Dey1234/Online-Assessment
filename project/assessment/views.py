@@ -39,7 +39,7 @@ class Test_View_Details(APIView):
             return Response("You are not allowed", status=status.HTTP_401_UNAUTHORIZED)
         try:
             teacher = Teacher.objects.filter(user = request.user)
-            data = JSONParser().parse(request)
+            data = request.data
             students = data["students"]                
             name = data["name"]
             isFixed = data["isFixed"]
@@ -51,25 +51,30 @@ class Test_View_Details(APIView):
                 isFixed=isFixed,
                 exam_start_time=exam_start_time,
                 exam_end_time=exam_end_time,
+                discipline = request.data.get("discipline",""),
+                programme = request.data.get("programme","")
             )
 
-            if( len(students) == 0 ):
-                for s in Student.objects.all():
-                    test.student.add(s)
-                    s.alloted_test.add(test)
+            # if( len(students) == 0 ):
+            #     for s in Student.objects.all():
+            #         test.student.add(s)
+            #         s.alloted_test.add(test)
+            # else:
+            #     for s in students:
+            #         s_email = Student.objects.filter(user__email = s)
+            #         print(s_email)
+            #         if s_email:
+            #             test.student.add(s_email[0])
+            #             s_email[0].alloted_test.add(test)
 
-            else:
-                for s in students:
-                    s_email = Student.objects.filter(user__email = s)
-                    print(s_email)
-                    if s_email:
-                        test.student.add(s_email[0])
-                        s_email[0].alloted_test.add(test)
+            stdts = Student.objects.filter(discipline = request.data.get("discipline","")).filter(programme = request.data.get("programme",""))
+            test.student.set(stdts)
+            for s in stdts:
+                s.alloted_test.add(test)
             test.save()
             questions = data["questions"]
             for q in questions:
                 question_data = Question.objects.get(pk = q)
-                # print(question_data[0])
                 test.questions.add(question_data)
                 question_data.test = test
                 question_data.save()
@@ -161,19 +166,55 @@ class Submission_View(APIView):
             else:
                 marks_obtained -= sub_obj.question.negative_marks
 
-        print(marks_obtained)
+
         test = self.get_object(pk)
-        attempt = Attempts.objects.create(
-            name = request.data["name"],
-            marks_obtained = marks_obtained
-        )
-        attempt.test = test[0]
-        test[0].submission.add(attempt)
-        attempt.student = student
-        attempt.submission.set(submissions)
-        attempt.save()
-        serailizer = AttemptSerializer(attempt)
-        return Response(serailizer.data, status=status.HTTP_201_CREATED)
+        if(test.first()):
+            attempt = Attempts.objects.create(
+                name = request.data["name"],
+                marks_obtained = marks_obtained
+            )
+            attempt.test = test[0]
+            test[0].submission.add(attempt)
+            attempt.student = student
+            attempt.submission.set(submissions)
+            attempt.save()
+            serailizer = AttemptSerializer(attempt)
+            return Response(serailizer.data, status=status.HTTP_201_CREATED)
+        return Response("No Attempt Found", status=status.HTTP_404_NOT_FOUND)
+    
+    # def patch(self,request,pk):
+    #     attempt = Attempts.objects.filter(id = pk)
+    #     student = Student.objects.get(user = request.user)
+    #     if(attempt.first()):
+    #         submissions = request.data["submissions"]
+    #         marks_obtained = 0
+    #         for sub in submissions:
+    #             is_correct = True
+    #             sub_obj = Submission.objects.get(id = sub)
+    #             print(sub_obj.answer_submitted.all())
+    #             # q = Question.objects.get(id = sub_obj.question)
+    #             for op in sub_obj.answer_submitted.all():
+    #                 is_correct = is_correct and op.is_correct
+    #             if(is_correct):
+    #                 marks_obtained += sub_obj.question.positive_marks
+    #             else:
+    #                 marks_obtained -= sub_obj.question.negative_marks
+
+    #         print(marks_obtained)
+    #         test = self.get_object(pk)
+    #         attempt = Attempts.objects.create(
+    #             name = request.data["name"],
+    #             marks_obtained = marks_obtained
+    #         )
+    #         attempt.test = test[0]
+    #         test[0].submission.add(attempt)
+    #         attempt.student = student
+    #         attempt.submission.set(submissions)
+    #         attempt.save()
+    #         serailizer = AttemptSerializer(attempt)
+    #         return Response(serailizer.data, status=status.HTTP_201_CREATED)
+    #     return Response("No Attempt Found", status=status.HTTP_404_NOT_FOUND)
+
 
 
 class Attempts_View(APIView):
@@ -263,7 +304,6 @@ class Submission_View_Student_View(APIView):
 
     def patch(self,request,test,pk):
         # try :
-        print(request.user,test,pk)
         submission = Submission.objects.filter(question = pk, user = request.user, test__unique_id = test )
         if(len(submission) > 0):
             submission_ser = SubmissionPatchSerializer(submission[0],data = request.data,partial = True)
