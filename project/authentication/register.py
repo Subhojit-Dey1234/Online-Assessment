@@ -1,22 +1,19 @@
 import random
-import os
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated,AllowAny
-# from twilio.rest import Client 
+from twilio.rest import Client, TwilioException
 from django.contrib.auth.models import User
 from .models import ExtendedUserModel, PhoneOTP
+from decouple import config
 
-# from dotenv import load_dotenv
-# load_dotenv()
+account_sid = config('account_sid')
+auth_token = config('auth_token')
+messaging_service_sid = config('messaging_service_sid')
 
-# account_sid = os.getenv("account_sid")
-# auth_token = os.getenv("auth_token")
-# messaging_service_sid = os.getenv("messaging_service_sid")
-
-# client = Client(account_sid, auth_token) 
+client = Client(account_sid, auth_token) 
 
 def send_otp(phone):
     if phone:
@@ -52,6 +49,19 @@ class ValidatePhoneSendOTP(APIView):
                         old.validated = False
                         old.save()
                         user.save()
+                        txt = f'\nOtp Send for login {key}'
+                        try:
+                            s_msg = client.messages.create(  
+                                messaging_service_sid = messaging_service_sid, 
+                                body= txt,      
+                                to='+918583891781' 
+                            ) 
+
+                            print(s_msg)
+                        except TwilioException as e:
+                            print(e)
+                            return Response("There is a problem with server", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
                         return Response({
                             'status' : True,
                             'detail' : 'OTP sent successfully.'
@@ -62,12 +72,14 @@ class ValidatePhoneSendOTP(APIView):
                             phone = phone,
                             otp = key,
                             )
+                        try:
+                            s_msg = client.messages.create(         
+                                to='+918583891781' 
+                            )
+                        except TwilioException as e:
+                            return Response("There is a problem with server", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-                        # s_msg = client.messages.create(         
-                        #       to='+918583891781' 
-                        # )
-
-                        # print(s_msg)
+                        print(s_msg)
                         return Response({
                             'status' : True,
                             'detail' : 'OTP sent successfully.'
