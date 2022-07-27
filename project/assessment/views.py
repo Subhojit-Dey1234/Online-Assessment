@@ -67,7 +67,13 @@ class Test_View_Details(APIView):
             #             test.student.add(s_email[0])
             #             s_email[0].alloted_test.add(test)
 
-            stdts = Student.objects.filter(discipline = request.data.get("discipline","")).filter(programme = request.data.get("programme",""))
+            discipline = request.data.get("discipline","");
+            programme = request.data.get("programme","");
+            stdts = Student.objects.all()
+            if(len(discipline) > 0):
+                stdts = stdts.filter(discipline = discipline)
+            if(len(programme) > 0):
+                stdts = stdts.filter(programme = programme)
             test.student.set(stdts)
             for s in stdts:
                 s.alloted_test.add(test)
