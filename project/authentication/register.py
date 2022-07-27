@@ -29,8 +29,9 @@ class ValidatePhoneSendOTP(APIView):
         phone_number = request.data.get('phone')
         if phone_number:
             phone  = str(phone_number)
+            print(phone)
             user = ExtendedUserModel.objects.filter(phone_number__iexact = phone)
-            print(user.first().user)
+            print(user)
             user_obj = User.objects.filter(username = user.first().user)
             if False:
                 return Response({
@@ -72,11 +73,17 @@ class ValidatePhoneSendOTP(APIView):
                             phone = phone,
                             otp = key,
                             )
+                        txt = f'\nOtp Send for login {key}'
                         try:
-                            s_msg = client.messages.create(         
+                            s_msg = client.messages.create(  
+                                messaging_service_sid = messaging_service_sid, 
+                                body= txt,      
                                 to='+918583891781' 
-                            )
+                            ) 
+
+                            print(s_msg)
                         except TwilioException as e:
+                            print(e)
                             return Response("There is a problem with server", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
                         print(s_msg)
