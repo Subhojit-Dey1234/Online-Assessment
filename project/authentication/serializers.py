@@ -51,6 +51,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     state = serializers.CharField(required = False)
     discipline = serializers.CharField(required = False)
     programme = serializers.CharField(required = False)
+    phone_number = serializers.CharField(
+        required = True,
+        validators = [UniqueValidator(queryset=ExtendedUserModel.objects.all())]
+    )
+
 
     class Meta:
         model = ExtendedUserModel
@@ -64,7 +69,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             "city",
             "state",
             "discipline",
-            "programme"
+            "programme",
+            "phone_number"
         )
         extra_kwargs = {
             "first_name": {"required": True},
