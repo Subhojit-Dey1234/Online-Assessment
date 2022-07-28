@@ -167,10 +167,12 @@ class Submission_View(APIView):
             # q = Question.objects.get(id = sub_obj.question)
             for op in sub_obj.answer_submitted.all():
                 is_correct = is_correct and op.is_correct
-            if(is_correct):
-                marks_obtained += sub_obj.question.positive_marks
-            else:
-                marks_obtained -= sub_obj.question.negative_marks
+            print(sub_obj.type)
+            if(sub_obj.type != 'Fill in Blanks'):
+                if(is_correct):
+                    marks_obtained += sub_obj.question.positive_marks
+                else:
+                    marks_obtained -= sub_obj.question.negative_marks
 
 
         test = self.get_object(pk)
@@ -286,6 +288,7 @@ class Submission_View_Student_View(APIView):
             return Response("You have already submitted", status= status.HTTP_403_FORBIDDEN)
         submission = Submission.objects.create()
         submission.question = question
+        submission.type = data["type"]
         submission.user = request.user
         submission.test = Test.objects.get(unique_id = test)
         submission.is_attempted = True
