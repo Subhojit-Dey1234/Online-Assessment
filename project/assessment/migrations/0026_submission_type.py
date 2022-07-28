@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='submission',
             name='type',
-            field=models.CharField(default='Fill in Blanks', max_length=100),
+            field=models.CharField(default='Fill in the Blanks', max_length=100),
         ),
     ]

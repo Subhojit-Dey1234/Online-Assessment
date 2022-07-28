@@ -168,7 +168,7 @@ class Submission_View(APIView):
             for op in sub_obj.answer_submitted.all():
                 is_correct = is_correct and op.is_correct
             print(sub_obj.type)
-            if(sub_obj.type != 'Fill in Blanks'):
+            if(sub_obj.type != 'Fill in the Blanks'):
                 if(is_correct):
                     marks_obtained += sub_obj.question.positive_marks
                 else:

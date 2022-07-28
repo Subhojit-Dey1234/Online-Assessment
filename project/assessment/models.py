@@ -42,7 +42,7 @@ class Question(models.Model):
     is_range_present = models.BooleanField(default=False)
     lowest_mark = models.FloatField(default=0,blank=True)
     highest_mark = models.FloatField(default=0,blank=True)
-    type = models.CharField(max_length=100,default="Fill in Blanks")
+    type = models.CharField(max_length=100,default="Fill in the Blanks")
 
     def __str__(self) -> str:
         return str(self.id)
@@ -74,7 +74,7 @@ class Submission(models.Model):
     question = models.ForeignKey(Question,on_delete=models.CASCADE,blank=True,null=True,related_name="question_foreign_key")
     answer_submitted = models.ManyToManyField(Option, blank=True)
     subjective_answer = models.CharField(max_length=3000,blank=True,null=True)
-    type = models.CharField(max_length=100,default="Fill in Blanks")
+    type = models.CharField(max_length=100,default="Fill in the Blanks")
     is_correct = models.BooleanField(default=False)
     is_attempted = models.BooleanField(default=False)
     is_answered = models.BooleanField(default=False)
