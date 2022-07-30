@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from .models import ExtendedUserModel
+from .register import ValidatePhoneSendOTP, ValidateOTP
+
 import string
 import random
 
@@ -89,9 +91,16 @@ class LogoutView(APIView):
         serializer.save()
         return Response(status=status.HTTP_200_OK)
 
-class RegisterView(generics.CreateAPIView):
+class RegisterView(APIView):
     queryset = ExtendedUserModel.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
+
+    def post(self,request):
+        register_ser = self.serializer_class(data = request.data)
+        if(register_ser.is_valid()):
+            register_ser.save()
+            return Response(register_ser.data,status= status.HTTP_201_CREATED)
+        return Response(register_ser.errors,status= status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
