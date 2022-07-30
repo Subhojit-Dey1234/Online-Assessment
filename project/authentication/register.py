@@ -108,7 +108,7 @@ class ValidatePhoneSendOTP(APIView):
             else :
                 key = send_otp(phone)
                 PhoneOTP.objects.create(
-                    username = "Random1",
+                    username = id_generator(200),
                     phone = phone,
                     otp = key,
                     )
@@ -149,6 +149,7 @@ class ValidateOTP(APIView):
             if old.exists():
                 old = old.first()
                 otp = old.otp
+                print(otp_sent, otp)
                 if str(otp_sent) == str(otp):
                     old.validated = True
                     old.save()
