@@ -1,7 +1,4 @@
-from distutils import errors
-from functools import partial
 from rest_framework.response import Response
-from sympy import true
 
 from authentication.models import ExtendedUserModel
 from .serializers import OptionSerializer, QuestionSerializer, TestSerializer

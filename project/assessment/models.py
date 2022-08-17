@@ -1,4 +1,5 @@
 from ast import Try
+from datetime import datetime, timedelta
 from django.db import models
 import uuid
 from django.contrib.auth.models import User
@@ -6,9 +7,6 @@ from django.contrib.auth.models import User
 
 class Teacher(models.Model):
     user = models.ForeignKey(User, blank= True, null=True, on_delete=models.CASCADE)
-    state = models.CharField(max_length=256,blank=True,null=True)
-    city = models.CharField(max_length=256,blank=True,null=True)
-
     def __str__(self):
         return self.user.username
     
@@ -28,9 +26,10 @@ class Test(models.Model):
     instructions = models.CharField(max_length=1000, blank=True, null=True)
     discipline = models.CharField(max_length=256,blank=True,null=True)
     programme = models.CharField(max_length=256,blank=True,null=True)
+    time_alloted = models.IntegerField(default=0)
 
-    # def __str__(self):
-    #     return self.name
+    def __str__(self):
+        return self.name
 
 
 class Question(models.Model):
@@ -62,6 +61,7 @@ class Attempts(models.Model):
     student = models.ForeignKey("Student",on_delete=models.CASCADE,blank=True,null=True,related_name="student_submitted")
     submission =  models.ManyToManyField("Submission", related_name="submission_attempts_field")
     marks_obtained = models.IntegerField(default=0)
+    start_time = models.DateTimeField(default=datetime.now)
 
     # def __str__(self) -> str:
     #     return self.name
@@ -87,8 +87,6 @@ class Student(models.Model):
     user = models.ForeignKey(User, blank= True, null=True, on_delete=models.CASCADE)
     discipline = models.CharField(max_length=256,blank=True,null=True)
     programme = models.CharField(max_length=256,blank=True,null=True)
-    state = models.CharField(max_length=256,blank=True,null=True)
-    city = models.CharField(max_length=256,blank=True,null=True)
     attempted_test  = models.ManyToManyField(Test,related_name="test_field",blank=True)
     alloted_test  = models.ManyToManyField(Test,related_name="alloted_test",blank=True)
     

@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from .models import ExtendedUserModel
-from .register import ValidatePhoneSendOTP, ValidateOTP
+from rest_framework import status
 
 import string
 import random
@@ -50,30 +50,27 @@ class MyObtainTokenPairView(TokenObtainPairView):
         print(request.data)
         serializer = self.serializer_class(data = request.data)
         serializer.is_valid(raise_exception=True)
-        print("jansdj")
         username = serializer.__dict__["_kwargs"]["data"]["username"]
         try :
-            print("jansdj")
             extended_user = ExtendedUserModel.objects.get(user__username = username)
-            print("jansdj")
             user = User.objects.get(username = extended_user.user)
-            print("jansdj")
             user_response = {
                 "username" : extended_user.user.username,
                 "email" : extended_user.user.email,
                 "user_type" : extended_user.user_type,
-                "phone" : extended_user.phone_number,
+                "mobile_number" : extended_user.mobile_number,
+                "telephone_number" : extended_user.telephone_number,
+                "city_name" : extended_user.city_name,
+                "street_name" : extended_user.street_name,
+                "state_name" : extended_user.state_name,
+                "country" : extended_user.country,
+                "zip_code" : extended_user.zip_code,
                 "name" : extended_user.user.first_name + " " + extended_user.user.last_name
             }
             response = {
                 "user" : user_response,
                 "token" : serializer.__dict__['_validated_data']
             }
-
-            # if(extended_user.user_type == 'student'):
-            password = id_generator(100)
-            print(password)
-            user.set_password(password)
             user.save()
             return Response(response)
         except :
@@ -98,6 +95,24 @@ class RegisterView(APIView):
 
     def post(self,request):
         register_ser = self.serializer_class(data = request.data)
+        if(register_ser.is_valid()):
+            register_ser.save()
+            return Response(register_ser.data,status= status.HTTP_201_CREATED)
+        return Response(register_ser.errors,status= status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class EditProfile(APIView):
+    queryset = ExtendedUserModel.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterSerializer
+
+    def patch(self,request):
+        try:
+            username = ExtendedUserModel.objects.get(user__username = request.data["username"])
+            register_ser = self.serializer_class(instance= username, data = request.data,partial = True)
+        except:
+            return Response("No user found")
         if(register_ser.is_valid()):
             register_ser.save()
             return Response(register_ser.data,status= status.HTTP_201_CREATED)

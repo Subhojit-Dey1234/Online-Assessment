@@ -1,5 +1,4 @@
 from rest_framework.response import Response
-from sympy import false
 from .serializers import AttemptSerializer, QuestionSerializer, TestSerializer
 from .models import Attempts, Option, Question, Student, Submission, Test
 from rest_framework.parsers import JSONParser

@@ -1,4 +1,3 @@
-from functools import partial
 from rest_framework.response import Response
 from .serializers import OptionSerializer, QuestionSerializer, TestSerializer
 from .models import Attempts, Option, Question, Student, Submission, Test

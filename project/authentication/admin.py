@@ -1,8 +1,7 @@
 from django.contrib import admin
 
-from .models import ExtendedUserModel,PhoneOTP
+from .models import ExtendedUserModel
 
 admin.site.register(ExtendedUserModel)
-admin.site.register(PhoneOTP)
 
 # Register your models here.
