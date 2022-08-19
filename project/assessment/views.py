@@ -122,7 +122,7 @@ class Test_View_Detail_Single(APIView):
             return Response(test_serializer.data,status= status.HTTP_200_OK)
         return Response(test_serializer.errors,status=status.HTTP_404_NOT_FOUND)
 
-    def delete(self,pk):
+    def delete(self,request,pk):
         test = self.get_object(pk)[0]
         test.delete()
         return Response("Deleted Successfully", status=status.HTTP_200_OK)
