@@ -27,6 +27,7 @@ class Test(models.Model):
     discipline = models.CharField(max_length=256,blank=True,null=True)
     programme = models.CharField(max_length=256,blank=True,null=True)
     time_alloted = models.IntegerField(default=0)
+    total_marks = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name

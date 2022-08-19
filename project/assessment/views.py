@@ -155,16 +155,14 @@ class Submission_View(APIView):
         student = Student.objects.get(user = request.user)
         test = self.get_object(pk)[0]
         print(test)
-        # if test in student.attempted_test.all():
-        #     return Response("You have already attempted", status=status.HTTP_404_NOT_FOUND)
+        if test in student.attempted_test.all():
+            return Response("You have already attempted", status=status.HTTP_404_NOT_FOUND)
         student.attempted_test.add(test)
         submissions = request.data["submissions"]
         marks_obtained = 0
         for sub in submissions:
             is_correct = True
             sub_obj = Submission.objects.get(id = sub)
-            print(sub_obj.answer_submitted.all())
-            # q = Question.objects.get(id = sub_obj.question)
             for op in sub_obj.answer_submitted.all():
                 is_correct = is_correct and op.is_correct
             print(sub_obj.type)
@@ -324,5 +322,3 @@ class Submission_View_Student_View(APIView):
             return Response("Errors",status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         # except :
         #     return Response("No Query Found", status=status.HTTP_404_NOT_FOUND)
-
-    
