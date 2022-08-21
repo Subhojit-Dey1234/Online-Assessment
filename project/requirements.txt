@@ -16,7 +16,6 @@ billiard==3.6.3.0
 black==22.3.0
 celery==4.4.6
 certifi==2022.6.15
-cffi==1.14.0
 chardet==3.0.4
 charset-normalizer==2.1.0
 click==8.1.2
