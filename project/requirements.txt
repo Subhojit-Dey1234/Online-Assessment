@@ -10,7 +10,7 @@ autobahn==20.7.1
 Automat==20.2.0
 Babel==2.8.0
 backcall==0.2.0
-backports.zoneinfo==0.2.1
+backports.zoneinfo==0.2.1;python_version<"3.9"
 beautifulsoup4==4.9.3
 billiard==3.6.3.0
 black==22.3.0
@@ -72,3 +72,5 @@ wrapt==1.11.2
 yarl==1.4.2
 zipp==3.8.1
 zope.interface==5.1.0
+whitenoise==6.2.0
+gunicorn==20.1.0
