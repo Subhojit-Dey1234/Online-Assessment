@@ -54,6 +54,7 @@ class MyObtainTokenPairView(TokenObtainPairView):
         try :
             extended_user = ExtendedUserModel.objects.get(user__username = username)
             user = User.objects.get(username = extended_user.user)
+            print(extended_user.profile)
             user_response = {
                 "username" : extended_user.user.username,
                 "email" : extended_user.user.email,
@@ -65,7 +66,9 @@ class MyObtainTokenPairView(TokenObtainPairView):
                 "state_name" : extended_user.state_name,
                 "country" : extended_user.country,
                 "zip_code" : extended_user.zip_code,
-                "name" : extended_user.user.first_name + " " + extended_user.user.last_name
+                "profile" : '/media/' + str(extended_user.profile),
+                "first_name" : extended_user.user.first_name,
+                "last_name" : extended_user.user.last_name
             }
             response = {
                 "user" : user_response,
@@ -104,18 +107,33 @@ class RegisterView(APIView):
 
 class EditProfile(APIView):
     queryset = ExtendedUserModel.objects.all()
-    permission_classes = (AllowAny,)
+    permission_classes = [IsAuthenticated]
     serializer_class = RegisterSerializer
 
     def patch(self,request):
-        try:
-            username = ExtendedUserModel.objects.get(user__username = request.data["username"])
-            register_ser = self.serializer_class(instance= username, data = request.data,partial = True)
-        except:
-            return Response("No user found")
-        if(register_ser.is_valid()):
-            register_ser.save()
-            return Response(register_ser.data,status= status.HTTP_201_CREATED)
-        return Response(register_ser.errors,status= status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # try:
+        validated_data = request.data
+        # username = ExtendedUserModel.objects.get(user__username = request.data["username"])
+        user = User.objects.get(username = validated_data["username"])
+        user.first_name = validated_data["first_name"] if "first_name" in validated_data else user.first_name
+        user.last_name = validated_data["last_name"] if "last_name" in validated_data else user.last_name
+        user.save()
+
+
+        extended_user = ExtendedUserModel.objects.get(user = user)
+        extended_user.city_name = validated_data["city_name"] if "city_name" in validated_data else extended_user.city_name
+        extended_user.street_name = validated_data["street_name"] if "street_name" in validated_data else extended_user.street_name
+        extended_user.state_name = validated_data["state_name"] if "state_name" in validated_data else extended_user.state_name
+        extended_user.country = validated_data["country"] if "country" in validated_data else extended_user.country
+        extended_user.zip_code = validated_data["zip_code"] if "zip_code" in validated_data else extended_user.zip_code
+        extended_user.mobile_number = validated_data["mobile_number"] if "mobile_number" in validated_data else extended_user.mobile_number
+        extended_user.telephone_number = validated_data["telephone_number"] if "telephone_number" in validated_data else extended_user.telephone_number
+        extended_user.father_name = validated_data["father_name"] if "father_name" in validated_data else extended_user.father_name
+        extended_user.aadhar_number = validated_data["aadhar_number"] if "aadhar_number" in validated_data else extended_user.aadhar_number
+        extended_user.profile = validated_data["profile"] if "profile" in validated_data else extended_user.profile
+        extended_user.save()
+
+        serializer = RegisterSerializer(extended_user)
+        return Response(serializer.data)
 
 

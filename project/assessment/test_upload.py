@@ -7,8 +7,11 @@ from rest_framework import status
 
 from .serializers import TestSerializer
 from.models import Option, Question, Test
+from rest_framework.permissions import IsAuthenticated
 
 class Test_Upload(APIView):
+
+    permission_classes = [IsAuthenticated]
 
     def split_string(self,s):
         return " ".join(str(s).split())

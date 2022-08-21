@@ -147,7 +147,7 @@ USE_TZ = True
 import os
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 

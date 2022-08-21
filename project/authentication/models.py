@@ -17,7 +17,7 @@ class ExtendedUserModel(models.Model):
     state_name = models.CharField(max_length=100,null=True,blank=True)
     country = models.CharField(max_length=100,null=True,blank=True)
     zip_code = models.CharField(max_length=100,null=True,blank=True)
-    profile = models.ImageField(upload_to = "photos", max_length=254, null = True, blank = True)
+    profile = models.ImageField(upload_to = "photos", max_length=254, null = True, blank = True,default = '/media/default/images.png')
 
     def __str__(self) -> str:
         return self.user.username
